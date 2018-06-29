@@ -1,6 +1,7 @@
 require('dotenv').config(); //read .env files
 const express = require('express');
-const { getRates } = require('./lib/fixer-service.js');
+const {getRates, getSymbols} = require('./lib/fixer-service');
+const {convertCurrency} = require('./lib/free-currency-service');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -36,6 +37,29 @@ app.get('/api/rates', async(req, res) => {
    }
 });
 
+// Fetch Symbols
+app.get('/api/symbols', async (req, res) => {
+   try {
+      const data = await getSymbols();
+      res.setHeader('Content-Type', 'application/json');
+      res.send(data);
+   } catch (error) {
+      errorHandler(error, req, res);
+   }
+});
+
+// Convert Currency
+app.post('/api/convert', async (req, res) => {
+   try {
+      const {from, to} = req.body;
+      const data = await convertCurrency(from, to);
+      res.setHeader('Content-Type', 'application/json');
+      res.send(data);
+   } catch (error) {
+      errorHandler(error, req, res);
+   }
+});
+
 app.use((req, res) => res.sendFile(`${__dirname}/public/index.html`));
 
 // Listen for HTTP requests on port 3000
@@ -45,6 +69,16 @@ app.listen(port, () => {
 
 // const test = async() => {
 //    const data = await getRates();
+//    console.log(data);
+// }
+
+// const test = async() => {
+//    const data = await getSymbols();
+//    console.log(data);
+// }
+
+// const test = async() => {
+//    const data = await convertCurrency('USD', 'KES');
 //    console.log(data);
 // }
 
